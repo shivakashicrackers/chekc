@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crackers Shop – Order Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--night:#1c1744;--paper:#f7f4fb;--card:#fff;--pink:#d3226b;--gold:#f4b000;--green:#12805c;--ink:#241f3d;--mute:#6d688a;--line:#e3ddf0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Figtree,system-ui,sans-serif;line-height:1.5}
+h1,h2,h3{font-family:"Bricolage Grotesque",Figtree,sans-serif;margin:0}
+header{background:var(--night);color:#fff;padding:28px 20px 34px}
+.wrap{max-width:960px;margin:0 auto}
+header h1{font-size:clamp(28px,6vw,46px);font-weight:800;letter-spacing:-.5px}
+header p{margin:6px 0 0;color:#cfc9ee;max-width:46ch}
+.tag{display:inline-block;background:var(--gold);color:#2b2000;font-weight:700;font-size:13px;padding:3px 10px;border-radius:99px;margin-bottom:10px}
+main{padding:20px 16px 120px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.p .em{font-size:38px;line-height:1}
+.p h3{font-size:18px}
+.p small{color:var(--mute)}
+.price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.old{text-decoration:line-through;color:var(--mute)}
+.new{font-family:"Bricolage Grotesque",sans-serif;font-size:24px;font-weight:800;color:var(--pink)}
+.off{background:#e7f6ef;color:var(--green);font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+.qty{display:flex;align-items:center;gap:0;margin-top:auto}
+.qty button{width:40px;height:40px;border:1px solid var(--line);background:#fff;font-size:20px;cursor:pointer;color:var(--ink)}
+.qty button:first-child{border-radius:10px 0 0 10px}.qty button:last-child{border-radius:0 10px 10px 0}
+.qty input{width:56px;height:40px;text-align:center;border:1px solid var(--line);border-left:0;border-right:0;font:inherit;font-weight:600}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.btn{background:var(--pink);color:#fff;border:0;border-radius:10px;padding:12px 22px;font:inherit;font-weight:700;cursor:pointer}
+.btn:disabled{background:#c9c3dc;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line);font-size:15px}
+th{color:var(--mute);font-weight:600}
+td.r,th.r{text-align:right}
+.tot td{border:0;font-weight:700}
+.save{color:var(--green)}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input.f,textarea.f{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font:inherit}
+.err{color:#b3261e;font-size:14px;margin-top:8px;min-height:20px}
+.hide{display:none}
+.ok{text-align:center;padding:40px 10px}
+.ok h2{font-size:30px}
+.note{font-size:13px;color:var(--mute);margin-top:10px}
+@media(max-width:520px){th:nth-child(2),td:nth-child(2){display:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <span class="tag">Festival offers</span>
+  <h1>Crackers Shop</h1>
+  <p>Pick your crackers, review your order, and we will call you to confirm.</p>
+</div></header>
+
+<main class="wrap">
+  <!-- Page 1: products -->
+  <section id="shop">
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- Page 2: order summary -->
+  <section id="summary" class="hide">
+    <h2 style="margin-bottom:14px">Your order</h2>
+    <div class="box">
+      <table>
+        <thead><tr><th>Item</th><th class="r">Price</th><th class="r">Qty</th><th class="r">Amount</th></tr></thead>
+        <tbody id="rows"></tbody>
+        <tfoot id="foot"></tfoot>
+      </table>
+    </div>
+    <div class="box">
+      <h3>Delivery details</h3>
+      <label for="name">Name</label>
+      <input class="f" id="name" autocomplete="name">
+      <label for="phone">Phone number</label>
+      <input class="f" id="phone" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="10-digit mobile number">
+      <label for="addr">Address</label>
+      <textarea class="f" id="addr" rows="3" autocomplete="street-address"></textarea>
+      <div class="err" id="err" role="alert"></div>
+      <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn ghost" id="back">Edit items</button>
+        <button class="btn" id="submit">Place order</button>
+      </div>
+      <p class="note" id="note"></p>
+    </div>
+  </section>
+
+  <!-- Page 3: done -->
+  <section id="done" class="hide">
+    <div class="box ok">
+      <h2>Order placed</h2>
+      <p>Your order number is <strong id="oid"></strong>.<br>We will call you on <strong id="ph"></strong> to confirm.</p>
+      <button class="btn" id="again">Start a new order</button>
+    </div>
+  </section>
+</main>
+
+<div class="bar" id="bar"><div class="wrap">
+  <div><strong id="count">0 items</strong><br><span id="barTotal" style="color:var(--mute)">₹0</span></div>
+  <button class="btn" id="review" disabled>Review order</button>
+</div></div>
+
+<script>
+/* ============ 1. EDIT YOUR PRODUCTS HERE ============
+   name, pack (unit description), mrp = real price, price = discounted price (₹) */
+const PRODUCTS = [
+  {id:1, emoji:"✨", name:"Sparklers (10 pcs)",       pack:"Box of 10",  mrp:120, price:60},
+  {id:2, emoji:"🌸", name:"Flower Pots (5 pcs)",      pack:"Box of 5",   mrp:250, price:125},
+  {id:3, emoji:"🎡", name:"Ground Chakkar (10 pcs)",  pack:"Box of 10",  mrp:180, price:90},
+  {id:4, emoji:"🚀", name:"Rockets (5 pcs)",          pack:"Box of 5",   mrp:300, price:150},
+  {id:5, emoji:"🧨", name:"Red Bijili Crackers",      pack:"Packet of 100", mrp:140, price:70},
+  {id:6, emoji:"🎆", name:"Fancy Shots (7 shots)",    pack:"1 piece",    mrp:600, price:300},
+  {id:7, emoji:"💥", name:"Atom Bomb (10 pcs)",       pack:"Box of 10",  mrp:200, price:100},
+  {id:8, emoji:"🎇", name:"Family Gift Box",          pack:"28 items",   mrp:1500, price:750}
+];
+
+/* ============ 2. PASTE YOUR GOOGLE APPS SCRIPT URL HERE ============
+   Leave empty to test: orders are then stored in this browser only
+   and a CSV file is downloaded. */
+const SHEET_URL = "";
+
+const cart = {};
+const $ = id => document.getElementById(id);
+const rs = n => "₹" + n.toLocaleString("en-IN");
+const items = () => PRODUCTS.filter(p => cart[p.id] > 0);
+
+function renderGrid(){
+  $("grid").innerHTML = PRODUCTS.map(p => {
+    const pct = Math.round((1 - p.price / p.mrp) * 100);
+    return `<article class="p">
+      <div class="em" aria-hidden="true">${p.emoji}</div>
+      <h3>${p.name}</h3><small>${p.pack}</small>
+      <div class="price"><span class="new">${rs(p.price)}</span><span class="old">${rs(p.mrp)}</span><span class="off">${pct}% off</span></div>
+      <div class="qty">
+        <button aria-label="Remove one ${p.name}" data-d="-1" data-id="${p.id}">−</button>
+        <input aria-label="Quantity of ${p.name}" id="q${p.id}" type="number" min="0" value="0" data-id="${p.id}">
+        <button aria-label="Add one ${p.name}" data-d="1" data-id="${p.id}">+</button>
+      </div></article>`;
+  }).join("");
+}
+
+function setQty(id, v){
+  v = Math.max(0, Math.min(999, parseInt(v) || 0));
+  cart[id] = v; $("q" + id).value = v; updateBar();
+}
+function totals(){
+  let mrp = 0, pay = 0, n = 0;
+  items().forEach(p => { const q = cart[p.id]; mrp += p.mrp * q; pay += p.price * q; n += q; });
+  return {mrp, pay, n, save: mrp - pay};
+}
+function updateBar(){
+  const t = totals();
+  $("count").textContent = t.n + (t.n === 1 ? " item" : " items");
+  $("barTotal").textContent = rs(t.pay) + (t.save ? " · you save " + rs(t.save) : "");
+  $("review").disabled = t.n === 0;
+}
+
+$("grid").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = +b.dataset.id; setQty(id, (cart[id] || 0) + +b.dataset.d);
+});
+$("grid").addEventListener("change", e => { if (e.target.dataset.id) setQty(+e.target.dataset.id, e.target.value); });
+
+function show(page){
+  ["shop","summary","done"].forEach(s => $(s).classList.toggle("hide", s !== page));
+  $("bar").classList.toggle("hide", page !== "shop");
+  window.scrollTo(0, 0);
+}
+
+$("review").onclick = () => {
+  const t = totals();
+  $("rows").innerHTML = items().map(p => `<tr><td>${p.name}</td><td class="r">${rs(p.price)}</td><td class="r">${cart[p.id]}</td><td class="r">${rs(p.price * cart[p.id])}</td></tr>`).join("");
+  $("foot").innerHTML =
+    `<tr class="tot"><td colspan="3" class="r">Total at real price</td><td class="r old">${rs(t.mrp)}</td></tr>
+     <tr class="tot save"><td colspan="3" class="r">You save</td><td class="r">${rs(t.save)}</td></tr>
+     <tr class="tot"><td colspan="3" class="r">Amount to pay</td><td class="r" style="font-size:20px">${rs(t.pay)}</td></tr>`;
+  $("note").textContent = SHEET_URL ? "" : "Test mode: no Google Sheet link set yet, so the order will be saved in this browser and downloaded as a CSV file.";
+  $("err").textContent = "";
+  show("summary");
+};
+$("back").onclick = () => show("shop");
+$("again").onclick = () => { for (const k in cart) cart[k] = 0; renderGrid(); updateBar(); ["name","phone","addr"].forEach(i => $(i).value = ""); show("shop"); };
+
+$("submit").onclick = async () => {
+  const name = $("name").value.trim(), phone = $("phone").value.trim(), addr = $("addr").value.trim();
+  if (!name) return $("err").textContent = "Enter your name.";
+  if (!/^[6-9]\d{9}$/.test(phone)) return $("err").textContent = "Enter a valid 10-digit mobile number.";
+  if (addr.length < 8) return $("err").textContent = "Enter your full delivery address.";
+
+  const t = totals();
+  const order = {
+    orderId: "CR" + Date.now().toString().slice(-8),
+    time: new Date().toLocaleString("en-IN"),
+    name, phone, address: addr,
+    items: items().map(p => `${p.name} x ${cart[p.id]} @ ${p.price}`).join("\n"),
+    total: t.pay, saved: t.save
+  };
+
+  const btn = $("submit"); btn.disabled = true; btn.textContent = "Placing order…"; $("err").textContent = "";
+  try {
+    if (SHEET_URL) {
+      // text/plain avoids a CORS preflight; Apps Script reads the body as JSON
+      await fetch(SHEET_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(order)});
+    } else {
+      saveLocally(order);
+    }
+    $("oid").textContent = order.orderId; $("ph").textContent = phone; show("done");
+  } catch (err) {
+    $("err").textContent = "Could not place the order. Check your internet and try again.";
+  }
+  btn.disabled = false; btn.textContent = "Place order";
+};
+
+function saveLocally(o){
+  const row = [o.time,o.orderId,o.name,o.phone,o.address,o.items,o.total].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(",");
+  const csv = "Time,Order ID,Name,Phone,Address,Items,Total\n" + row;
+  try { const all = JSON.parse(localStorage.getItem("orders") || "[]"); all.push(o); localStorage.setItem("orders", JSON.stringify(all)); } catch(e){}
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], {type:"text/csv"}));
+  a.download = o.orderId + ".csv"; a.click();
+}
+
+renderGrid(); updateBar();
+</script>
+</body>
+</html>
