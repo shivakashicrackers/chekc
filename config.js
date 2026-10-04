@@ -1,2 +1,2 @@
 // Paste your Google Apps Script Web app link (ends with /exec) between the quotes.
-const SHEET_URL = "";
+const SHEET_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnS1jhSrgwgT2lN2i0b0oXP5QZusTJtbQXV-Pj7TkcHaUOU1apNu5cDIrwHCcdKhlU8MnaOnSq8MF9W5voSMNS7Gku15JMMKO3g6T5MRtKlwDFQoQqaMj6Od3s20n7yzOC-y1sIAmtAv4yZE_GE4RkofeO1kuCAKuIa5hlENlaXwmHTgozkq4_cEARefYXieWxj6XFFsZ2-XaLSHdR1AY4zIhWLn2NJ53fEIsWdxvoZUJnJcB15qlizYIQlrl5vZ0t1gsH6PS9EtQyULIi_wDx4cxxLVrA&lib=M9eA3lWP0uAebu-5rQBbviKOBpf3oBwAl";
