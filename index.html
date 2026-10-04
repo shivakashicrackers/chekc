@@ -41,10 +41,13 @@ main{padding-bottom:120px}
 .tab{flex:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);white-space:nowrap}
 .tab small{opacity:.65;font-weight:400;margin-left:4px}
 .tab[aria-pressed=true]{background:var(--night);color:#fff;border-color:var(--night)}
+@media(min-width:700px){.tabs{flex-wrap:wrap;overflow:visible}}
 .empty{text-align:center;color:var(--mute);padding:30px 0}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 0;padding-bottom:max(10px,env(safe-area-inset-bottom))}
 .bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .btn{background:var(--pink);color:#fff;border:0;border-radius:10px;padding:12px 22px;font:inherit;font-weight:700;cursor:pointer}
+#review{white-space:nowrap}
+#barTotal{font-size:14px}
 .btn:disabled{background:#c9c3dc;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
