@@ -35,7 +35,13 @@ main{padding-bottom:120px}
 .qty button{width:38px;height:38px;border:1px solid var(--line);background:#fff;font-size:20px;cursor:pointer;color:var(--ink)}
 .qty button:first-child{border-radius:10px 0 0 10px}.qty button:last-child{border-radius:0 10px 10px 0}
 .qty input{flex:1;min-width:0;height:38px;text-align:center;border:1px solid var(--line);border-left:0;border-right:0;font:inherit;font-weight:600}
-.qty.off button,.qty.off input{opacity:.4;pointer-events:none}
+.qty.na button,.qty.na input{opacity:.4;pointer-events:none}
+.tabs{position:sticky;top:0;z-index:5;background:#fff;display:flex;gap:8px;overflow-x:auto;padding:10px 14px;margin:0 -14px 14px;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer;color:var(--ink);white-space:nowrap}
+.tab small{opacity:.65;font-weight:400;margin-left:4px}
+.tab[aria-pressed=true]{background:var(--night);color:#fff;border-color:var(--night)}
+.empty{text-align:center;color:var(--mute);padding:30px 0}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 0;padding-bottom:max(10px,env(safe-area-inset-bottom))}
 .bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .btn{background:var(--pink);color:#fff;border:0;border-radius:10px;padding:12px 22px;font:inherit;font-weight:700;cursor:pointer}
@@ -72,7 +78,9 @@ label{display:block;font-weight:600;margin:12px 0 4px}
       <input id="search" type="search" placeholder="Search crackers" aria-label="Search crackers">
       <span id="shown"></span>
     </div>
+    <div class="tabs" id="tabs" role="group" aria-label="Categories"></div>
     <div class="grid" id="grid"></div>
+    <p class="empty hide" id="empty">No items found.</p>
     <p class="note" id="loadErr"></p>
   </section>
 
@@ -148,19 +156,39 @@ function parseCSV(t){
   return rows.filter(r => r.some(x => x.trim())).map(r => {
     const o = {}; head.forEach((h, i) => o[h] = (r[i] || "").trim());
     const price = parseFloat(o.price) || 0, mrp = parseFloat(o.mrp) || 0;
-    return {id:o.id, image:o.image, name:o.name, pack:o.pack, price, mrp: mrp || price};
+    return {id:o.id, image:o.image, name:o.name, pack:o.pack, category:o.category || guessCat(o.name), price, mrp: mrp || price};
   });
 }
 
+/* If a product has no category in the sheet, guess the tab from its name */
+function guessCat(name){
+  const n = (name || "").toLowerCase();
+  if (/skyshots|\bshots?\b/.test(n)) return "Skyshots";
+  if (/rocket/.test(n)) return "Rockets";
+  if (/bomb/.test(n)) return "Bombs";
+  if (/gift/.test(n)) return "Gift Boxes";
+  if (/sparkler/.test(n)) return "Sparklers";
+  if (/crackling/.test(n)) return "Crackling";
+  if (/fountain|tri ?colou?r|shower/.test(n)) return "Fountains";
+  if (/wheel|chakkar|spinner/.test(n)) return "Wheels";
+  if (/flower ?pot|koti|\bpots?\b/.test(n)) return "Flower Pots";
+  return "Miscellaneous";
+}
+
 async function load(){
-  try{
-    const r = await fetch("products.csv", {cache:"no-cache"});
-    if (!r.ok) throw 0;
-    PRODUCTS = parseCSV(await r.text());
-    renderGrid();
-  }catch(e){
-    $("loadErr").textContent = "Could not load the product list. Please refresh the page.";
+  // Prefer the live Google Sheet (if a link is set in config.js); fall back to products.csv
+  const live = (typeof PRODUCTS_CSV_URL !== "undefined" && PRODUCTS_CSV_URL) ? PRODUCTS_CSV_URL : "";
+  const sources = live ? [live, "products.csv"] : ["products.csv"];
+  for (const src of sources){
+    try{
+      const r = await fetch(src, {cache:"no-store"});
+      if (!r.ok) throw 0;
+      const list = parseCSV(await r.text());
+      if (!list.length || !list[0].image) throw 0;
+      PRODUCTS = list; renderGrid(); return;
+    }catch(e){}
   }
+  $("loadErr").textContent = "Could not load the product list. Please refresh the page.";
 }
 
 function renderGrid(){
@@ -168,26 +196,50 @@ function renderGrid(){
     const ok = p.price > 0, pct = Math.round((1 - p.price / p.mrp) * 100);
     const priceHtml = !ok ? '<span class="nop">Price coming soon</span>'
       : `<span class="new">${rs(p.price)}</span>` + (p.mrp > p.price ? `<span class="old">${rs(p.mrp)}</span><span class="off">${pct}% off</span>` : "");
-    return `<article class="p" data-s="${esc((label(p) + " " + p.id).toLowerCase())}">
+    return `<article class="p" data-cat="${esc(p.category)}" data-s="${esc((label(p) + " " + p.id).toLowerCase())}">
       <button class="ph" data-img="${esc(p.image)}" aria-label="View ${esc(label(p))} larger"><img loading="lazy" src="${esc(p.image)}" alt="${esc(label(p))}"></button>
       <div class="pb">
         <h3>${esc(label(p))}</h3><small>${esc(p.pack)}</small>
         <div class="price">${priceHtml}</div>
-        <div class="qty${ok ? "" : " off"}">
+        <div class="qty${ok ? "" : " na"}">
           <button aria-label="Remove one" data-d="-1" data-id="${esc(p.id)}">−</button>
           <input aria-label="Quantity of ${esc(label(p))}" id="q-${esc(p.id)}" type="number" min="0" value="${cart[p.id] || 0}" data-id="${esc(p.id)}">
           <button aria-label="Add one" data-d="1" data-id="${esc(p.id)}">+</button>
         </div></div></article>`;
   }).join("");
-  filter();
+  renderTabs(); filter();
+}
+
+let TAB = "All";
+const CAT_ORDER = (typeof CATEGORIES !== "undefined" && CATEGORIES.length) ? CATEGORIES : ["Sparklers","Flower Pots","Skyshots","Bombs","Wheels","Fountains","Rockets","Crackling","Gift Boxes","Miscellaneous"];
+function canon(c){ c = (c || "Miscellaneous").trim(); if (c.toLowerCase() === "others") c = "Miscellaneous"; const f = CAT_ORDER.find(x => x.toLowerCase() === c.toLowerCase()); return f || c; }
+
+function renderTabs(){
+  PRODUCTS.forEach(p => p.category = canon(p.category));
+  const count = {}; PRODUCTS.forEach(p => count[p.category] = (count[p.category] || 0) + 1);
+  const cats = CAT_ORDER.filter(c => count[c]).concat(Object.keys(count).filter(c => !CAT_ORDER.includes(c)));
+  $("tabs").innerHTML = [["All", PRODUCTS.length]].concat(cats.map(c => [c, count[c]]))
+    .map(([c, n]) => `<button class="tab" data-c="${esc(c)}" aria-pressed="${c === TAB}">${esc(c)}<small>${n}</small></button>`).join("");
 }
 
 function filter(){
   const s = $("search").value.trim().toLowerCase(); let n = 0;
-  document.querySelectorAll("#grid .p").forEach(el => { const m = !s || el.dataset.s.includes(s); el.classList.toggle("gone", !m); if (m) n++; });
+  document.querySelectorAll("#grid .p").forEach(el => {
+    const m = (!s || el.dataset.s.includes(s)) && (TAB === "All" || el.dataset.cat === TAB);
+    el.classList.toggle("gone", !m); if (m) n++;
+  });
   $("shown").textContent = n + " items";
+  $("empty").classList.toggle("hide", n > 0);
 }
-$("search").addEventListener("input", filter);
+$("search").addEventListener("input", () => {
+  if ($("search").value.trim() && TAB !== "All"){ TAB = "All"; renderTabs(); }
+  filter();
+});
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  TAB = b.dataset.c; $("search").value = ""; renderTabs(); filter();
+  window.scrollTo({top: Math.max(0, $("tabs").offsetTop - 4)});
+});
 
 function setQty(id, v){
   v = Math.max(0, Math.min(999, parseInt(v) || 0));
