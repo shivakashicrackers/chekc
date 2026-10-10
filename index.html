@@ -24,6 +24,7 @@ main{padding-bottom:120px}
 .p{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .p.gone{display:none}
 .ph{display:block;width:100%;aspect-ratio:3/4;background:#ddd;border:0;padding:0;cursor:zoom-in}
+.ph-none{display:flex;align-items:center;justify-content:center;text-align:center;background:#efeaf8;color:var(--mute);font-size:14px;cursor:default;padding:12px}
 .ph img{display:block;width:100%;height:100%;object-fit:cover}
 .pb{padding:10px;display:flex;flex-direction:column;gap:6px;flex:1}
 .pb h3{font-size:15px;line-height:1.25;min-height:2.5em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -190,7 +191,7 @@ async function load(){
       const r = await fetch(src, {cache:"no-store"});
       if (!r.ok) throw 0;
       const list = parseCSV(await r.text());
-      if (!list.length || !list[0].image) throw 0;
+      if (!list.length || !list[0].name) throw 0;
       PRODUCTS = list; renderGrid(); return;
     }catch(e){}
   }
@@ -203,7 +204,7 @@ function renderGrid(){
     const priceHtml = !ok ? '<span class="nop">Price coming soon</span>'
       : `<span class="new">${rs(p.price)}</span>` + (p.mrp > p.price ? `<span class="old">${rs(p.mrp)}</span><span class="off">${pct}% off</span>` : "");
     return `<article class="p" data-cat="${esc(p.category)}" data-s="${esc((label(p) + " " + p.id).toLowerCase())}">
-      <button class="ph" data-img="${esc(p.image)}" aria-label="View ${esc(label(p))} larger"><img loading="lazy" src="${esc(p.image)}" alt="${esc(label(p))}"></button>
+      ${p.image ? `<button class="ph" data-img="${esc(p.image)}" aria-label="View ${esc(label(p))} larger"><img loading="lazy" src="${esc(p.image)}" alt="${esc(label(p))}"></button>` : `<div class="ph ph-none">Image will be<br>available soon</div>`}
       <div class="pb">
         <h3>${esc(label(p))}</h3><small>${esc(p.pack)}</small>
         <div class="price">${priceHtml}</div>
@@ -265,7 +266,7 @@ function updateBar(){
 
 $("grid").addEventListener("click", e => {
   const ph = e.target.closest(".ph");
-  if (ph){ $("lb").querySelector("img").src = ph.dataset.img; $("lb").classList.remove("hide"); return; }
+  if (ph && ph.dataset.img){ $("lb").querySelector("img").src = ph.dataset.img; $("lb").classList.remove("hide"); return; }
   const b = e.target.closest(".qty button"); if (!b) return;
   setQty(b.dataset.id, (cart[b.dataset.id] || 0) + +b.dataset.d);
 });
