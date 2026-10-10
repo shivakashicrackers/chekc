@@ -174,6 +174,7 @@ function guessCat(name){
   if (/rocket/.test(n)) return "Rockets";
   if (/bomb/.test(n)) return "Bombs";
   if (/gift/.test(n)) return "Gift Boxes";
+  if (/garland|\bwala\b|\b\d+k\b/.test(n)) return "Garlands";
   if (/sparkler/.test(n)) return "Sparklers";
   if (/crackling/.test(n)) return "Crackling";
   if (/fountain|tri ?colou?r|shower/.test(n)) return "Fountains";
@@ -218,7 +219,7 @@ function renderGrid(){
 }
 
 let TAB = "All";
-const CAT_ORDER = (typeof CATEGORIES !== "undefined" && CATEGORIES.length) ? CATEGORIES : ["Sparklers","Flower Pots","Skyshots","Bombs","Wheels","Fountains","Rockets","Crackling","Gift Boxes","Miscellaneous"];
+const CAT_ORDER = (typeof CATEGORIES !== "undefined" && CATEGORIES.length) ? CATEGORIES : ["Sparklers","Flower Pots","Skyshots","Bombs","Wheels","Fountains","Rockets","Crackling","Garlands","Gift Boxes","Miscellaneous"];
 function canon(c){ c = (c || "Miscellaneous").trim(); if (c.toLowerCase() === "others") c = "Miscellaneous"; const f = CAT_ORDER.find(x => x.toLowerCase() === c.toLowerCase()); return f || c; }
 
 function renderTabs(){
